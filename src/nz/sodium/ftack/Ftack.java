@@ -90,7 +90,7 @@ public void init(GLAutoDrawable drawable) {
     System.err.println("GL_RENDERER: " + gl.glGetString(GL2.GL_RENDERER));
     System.err.println("GL_VERSION: " + gl.glGetString(GL2.GL_VERSION));
 
-    float pos[] = { -1.0f, 5.0f, 10.0f, 0.0f };
+    float pos[] = { -1.0f, 1.0f, 10.0f, 0.0f };
 
     gl.glLightfv(GL2.GL_LIGHT0, GL2.GL_POSITION, pos, 0);
     gl.glEnable(GL2.GL_CULL_FACE);
@@ -155,14 +155,16 @@ public void dispose(GLAutoDrawable drawable) {
   @Override
 public void display(GLAutoDrawable drawable) {
 
-	Colour pink = new Colour(1.0f, 0.5f, 0.5f);
-	Colour green = new Colour(0.5f, 1.0f, 0.5f);
-	Scene sc = new Scene(Array.<Block>empty()
-			.append(new Block(new Point(-2f, -2f, 0f),
-					          new Point(2f, 2f, 1f), pink))
-			.append(new Block(new Point(-2f, -2f, 1f),
-					          new Point(-1f, 2f, 2f), green))
-			, 1, 1f);
+	int levels = 10;
+	Array<Block> blocks = Array.empty();
+	for (int i = 0; i < levels; i++) {
+		float w = (float)((levels - i) * 5f / (float)levels);
+		float z0 = (float)i;
+		float z1 = (float)i+1;
+		blocks = blocks.append(new Block(new Point(-w,-w,z0), new Point(w,w,z1),
+				               Colour.fromHSV((float)i * 6,0.4f,1.0f)));
+	}
+	Scene sc = new Scene(blocks, (float)levels * 0.5f, 1f);
 
     // Get the GL corresponding to the drawable we are animating
     GL2 gl = drawable.getGL().getGL2();
@@ -192,7 +194,7 @@ public void display(GLAutoDrawable drawable) {
     // Place the first gear and call its display list
     for (Block bl : sc.blocks) {
 	    gl.glPushMatrix();
-	    float col[] = { bl.colour.r, bl.colour.g, bl.colour.g, 1f };
+	    float col[] = { bl.colour.r, bl.colour.g, bl.colour.b, 1f };
 	    gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE, col, 0);
         gl.glScalef(bl.width(), bl.depth(), bl.height());
 	    Point centre = bl.centre();
