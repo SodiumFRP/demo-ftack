@@ -58,8 +58,8 @@ public class Ftack implements GLEventListener {
     // GLCapabilities caps = new GLCapabilities(GLProfile.getDefault());
     // GLCanvas canvas = new GLCanvas(caps);
 
-    final Ftack gears = new Ftack();
-    canvas.addGLEventListener(gears);
+    final Ftack ftack = new Ftack();
+    canvas.addGLEventListener(ftack);
 
     frame.add(canvas, java.awt.BorderLayout.CENTER);
     frame.validate();
@@ -78,10 +78,6 @@ public class Ftack implements GLEventListener {
 
   @Override
 public void init(GLAutoDrawable drawable) {
-    System.err.println("Gears: Init: "+drawable);
-    // Use debug pipeline
-    // drawable.setGL(new DebugGL(drawable.getGL()));
-
     GL2 gl = drawable.getGL().getGL2();
 
     System.err.println("Chosen GLCapabilities: " + drawable.getChosenGLCapabilities());
@@ -98,15 +94,11 @@ public void init(GLAutoDrawable drawable) {
     gl.glEnable(GL2.GL_LIGHT0);
     gl.glEnable(GL2.GL_DEPTH_TEST);
 
-    /* make the gears */
     if(0>=block) {
         block = gl.glGenLists(1);
         gl.glNewList(block, GL2.GL_COMPILE);
         mkBlock(gl);
         gl.glEndList();
-        System.err.println("gear1 list created: "+block);
-    } else {
-        System.err.println("gear1 list reused: "+block);
     }
 
     gl.glEnable(GL2.GL_NORMALIZE);
@@ -182,16 +174,14 @@ public void display(GLAutoDrawable drawable) {
       gl.glClear(GL2.GL_COLOR_BUFFER_BIT | GL2.GL_DEPTH_BUFFER_BIT);
     }
 
-    // Rotate the entire assembly of gears based on how the user
-    // dragged the mouse around
     gl.glPushMatrix();
     gl.glRotatef(view_rotx, 1.0f, 0.0f, 0.0f);
     gl.glRotatef(view_roty, 0.0f, 1.0f, 0.0f);
     gl.glRotatef(view_rotz, 0.0f, 0.0f, 1.0f);
     gl.glScalef(sc.zoom, sc.zoom, sc.zoom);
-
     gl.glTranslated(0, 0, -sc.zCentre);
-    // Place the first gear and call its display list
+
+    // Draw the blocks from the scene
     for (Block bl : sc.blocks) {
 	    gl.glPushMatrix();
 	    float col[] = { bl.colour.r, bl.colour.g, bl.colour.b, 1f };
@@ -203,8 +193,6 @@ public void display(GLAutoDrawable drawable) {
 	    gl.glPopMatrix();
     }
 
-    // Remember that every push needs a pop; this one is paired with
-    // rotating the entire gear assembly
     gl.glPopMatrix();
   }
 
