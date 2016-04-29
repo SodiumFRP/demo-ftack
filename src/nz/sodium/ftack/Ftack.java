@@ -68,10 +68,7 @@ public class Ftack implements GLEventListener {
 
   public Ftack() {
     SecondsTimerSystem sys = new SecondsTimerSystem();
-    scene = Transaction.run(() -> {
-	    Match match = new Match(sys, sClick);
-	    return match.scene;
-    });
+    scene = Transaction.run(() -> new Game(sys, sClick).scene);
   }
 
   @Override
@@ -165,7 +162,7 @@ public void display(GLAutoDrawable drawable) {
     gl.glRotatef(view_rotx, 1.0f, 0.0f, 0.0f);
     gl.glRotatef(view_roty, 0.0f, 1.0f, 0.0f);
     gl.glRotatef(view_rotz, 0.0f, 0.0f, 1.0f);
-    gl.glScalef(sc.zoom, sc.zoom, sc.zoom);
+    gl.glScalef(sc.zoomLevel, sc.zoomLevel, sc.zoomLevel);
     gl.glTranslated(0, 0, -sc.zCentre);
 
     // Draw the blocks from the scene

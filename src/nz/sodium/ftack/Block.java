@@ -45,4 +45,22 @@ public class Block {
         					  new Point(p1.x, p1.y, p1.z), colour)
 				  ));
     }
+    public final Optional<Block> overlap(Block below, float disp, boolean isY) {
+		Optional<Tuple2<Block,Block>> oBlk;
+		if (isY)
+			if (disp >= 0)
+				oBlk = chopY(below.p1.y);
+			else
+				oBlk = chopY(below.p0.y);
+		else
+			if (disp >= 0)
+				oBlk = chopX(below.p1.x);
+			else
+				oBlk = chopX(below.p0.x);
+		if (oBlk.isPresent())
+		    return Optional.of(disp >= 0 ? oBlk.get().a
+		    		                  : oBlk.get().b);
+		else
+			return Optional.empty();
+    }
 }

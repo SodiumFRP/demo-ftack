@@ -6,12 +6,15 @@ public class Scene {
     public Scene(
     		Array<Block> blocks,
     		float zCentre,
-    		float zoom) {
+    		float zoomLevel) {
         this.blocks = blocks;
         this.zCentre = zCentre;
-        this.zoom = zoom;
+        this.zoomLevel = zoomLevel;
     }
     public final Array<Block> blocks;
     public final float zCentre;
-    public final float zoom;
+    public final float zoomLevel;
+    public final Scene zoom(float zCentre, float zoomLevel) {
+    	return new Scene(blocks, zCentre, zoomLevel);
+    }
 }
