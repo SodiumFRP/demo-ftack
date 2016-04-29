@@ -9,4 +9,7 @@ public class Point {
     public final float x;
     public final float y;
     public final float z;
+    public final Point translate(float vx, float vy, float vz) {
+    	return new Point(x+vx, y+vy, z+vz);
+    }
 }

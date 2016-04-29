@@ -1,9 +1,7 @@
-
 package nz.sodium.ftack;
 
 import nz.sodium.*;
 import nz.sodium.time.*;
-import javaslang.collection.Array;
 
 import com.jogamp.opengl.GL2;
 import com.jogamp.opengl.GLAutoDrawable;
@@ -24,12 +22,12 @@ import com.jogamp.opengl.util.Animator;
 
 
 public class Ftack implements GLEventListener {
-  private float view_rotx = -45f, view_roty = 0f;
+  private final float view_rotx = -45f, view_roty = 0f;
   private final float view_rotz = 45f;
   private int block=0;
-  private final int swapInterval;
 
-  private int prevMouseX, prevMouseY;
+  private StreamSink<Unit> sClick = new StreamSink<>();
+  private Cell<Scene> scene;
 
   public static void main(String[] args) {
     java.awt.Frame frame = new java.awt.Frame("Ftack");
@@ -68,12 +66,12 @@ public class Ftack implements GLEventListener {
     animator.start();
   }
 
-  public Ftack(int swapInterval) {
-    this.swapInterval = swapInterval;
-  }
-
   public Ftack() {
-    this.swapInterval = 1;
+    SecondsTimerSystem sys = new SecondsTimerSystem();
+    scene = Transaction.run(() -> {
+	    Match match = new Match(sys, sClick);
+	    return match.scene;
+    });
   }
 
   @Override
@@ -103,18 +101,17 @@ public void init(GLAutoDrawable drawable) {
 
     gl.glEnable(GL2.GL_NORMALIZE);
 
-    // MouseListener gearsMouse = new TraceMouseAdapter(new GearsMouseAdapter());
-    MouseListener gearsMouse = new GearsMouseAdapter();
-    KeyListener gearsKeys = new GearsKeyAdapter();
+    MouseListener mouse = new FtackMouseAdapter();
+    KeyListener keys = new FtackKeyAdapter();
 
     if (drawable instanceof Window) {
         Window window = (Window) drawable;
-        window.addMouseListener(gearsMouse);
-        window.addKeyListener(gearsKeys);
+        window.addMouseListener(mouse);
+        window.addKeyListener(keys);
     } else if (GLProfile.isAWTAvailable() && drawable instanceof java.awt.Component) {
         java.awt.Component comp = (java.awt.Component) drawable;
-        new AWTMouseAdapter(gearsMouse, drawable).addTo(comp);
-        new AWTKeyAdapter(gearsKeys, drawable).addTo(comp);
+        new AWTMouseAdapter(mouse, drawable).addTo(comp);
+        new AWTKeyAdapter(keys, drawable).addTo(comp);
     }
   }
 
@@ -123,7 +120,7 @@ public void reshape(GLAutoDrawable drawable, int x, int y, int width, int height
     System.err.println("Gears: Reshape "+x+"/"+y+" "+width+"x"+height);
     GL2 gl = drawable.getGL().getGL2();
 
-    gl.setSwapInterval(swapInterval);
+    gl.setSwapInterval(1);
 
     float h = (float)height / (float)width;
 
@@ -146,17 +143,7 @@ public void dispose(GLAutoDrawable drawable) {
 
   @Override
 public void display(GLAutoDrawable drawable) {
-
-	int levels = 10;
-	Array<Block> blocks = Array.empty();
-	for (int i = 0; i < levels; i++) {
-		float w = (float)((levels - i) * 5f / (float)levels);
-		float z0 = (float)i;
-		float z1 = (float)i+1;
-		blocks = blocks.append(new Block(new Point(-w,-w,z0), new Point(w,w,z1),
-				               Colour.fromHSV((float)i * 6,0.4f,1.0f)));
-	}
-	Scene sc = new Scene(blocks, (float)levels * 0.5f, 1f);
+    Scene sc = scene.sample();
 
     // Get the GL corresponding to the drawable we are animating
     GL2 gl = drawable.getGL().getGL2();
@@ -186,9 +173,9 @@ public void display(GLAutoDrawable drawable) {
 	    gl.glPushMatrix();
 	    float col[] = { bl.colour.r, bl.colour.g, bl.colour.b, 1f };
 	    gl.glMaterialfv(GL2.GL_FRONT, GL2.GL_AMBIENT_AND_DIFFUSE, col, 0);
-        gl.glScalef(bl.width(), bl.depth(), bl.height());
 	    Point centre = bl.centre();
-	    gl.glTranslated(centre.x, centre.y, centre.z);
+	    gl.glTranslated(centre.y, centre.x, centre.z);
+        gl.glScalef(bl.depth(), bl.width(), bl.height());
 	    gl.glCallList(block);
 	    gl.glPopMatrix();
     }
@@ -221,28 +208,17 @@ public void display(GLAutoDrawable drawable) {
     gl.glEnd();
   }
 
-  class GearsKeyAdapter extends KeyAdapter {
+  class FtackKeyAdapter extends KeyAdapter {
     @Override
 	public void keyPressed(KeyEvent e) {
-    	System.out.println("KEY!");
-        int kc = e.getKeyCode();
-        if(KeyEvent.VK_LEFT == kc) {
-            view_roty -= 1;
-        } else if(KeyEvent.VK_RIGHT == kc) {
-            view_roty += 1;
-        } else if(KeyEvent.VK_UP == kc) {
-            view_rotx -= 1;
-        } else if(KeyEvent.VK_DOWN == kc) {
-            view_rotx += 1;
-        }
+    	Ftack.this.sClick.send(Unit.UNIT);
     }
   }
 
-  class GearsMouseAdapter extends MouseAdapter {
+  class FtackMouseAdapter extends MouseAdapter {
       @Override
 	public void mousePressed(MouseEvent e) {
-        prevMouseX = e.getX();
-        prevMouseY = e.getY();
+    	Ftack.this.sClick.send(Unit.UNIT);
       }
 
       @Override
@@ -251,33 +227,6 @@ public void display(GLAutoDrawable drawable) {
 
       @Override
 	public void mouseDragged(MouseEvent e) {
-        final int x = e.getX();
-        final int y = e.getY();
-        int width=0, height=0;
-        Object source = e.getSource();
-        if(source instanceof Window) {
-            Window window = (Window) source;
-            width=window.getSurfaceWidth();
-            height=window.getSurfaceHeight();
-        } else if(source instanceof GLAutoDrawable) {
-        	GLAutoDrawable glad = (GLAutoDrawable) source;
-            width=glad.getSurfaceWidth();
-            height=glad.getSurfaceHeight();
-        } else if (GLProfile.isAWTAvailable() && source instanceof java.awt.Component) {
-            java.awt.Component comp = (java.awt.Component) source;
-            width=comp.getWidth();
-            height=comp.getHeight();
-        } else {
-            throw new RuntimeException("Event source neither Window nor Component: "+source);
-        }
-        float thetaY = 360.0f * ( (float)(x-prevMouseX)/(float)width);
-        float thetaX = 360.0f * ( (float)(prevMouseY-y)/(float)height);
-
-        prevMouseX = x;
-        prevMouseY = y;
-
-        view_rotx += thetaX;
-        view_roty += thetaY;
       }
   }
 }
