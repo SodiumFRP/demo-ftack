@@ -8,22 +8,18 @@ import nz.sodium.time.*;
 
 
 public class Match {
-	public static final Scene emptyScene = new Scene(Array.of(
-		new Block(new Point(-5, -5, 0),
+	public static final Array<Block> initialStack = Array.of(
+			new Block(new Point(-5, -5, 0),
 					  new Point(5, 5, 1),
 					  Match.levelColour(0))
-		), 0, 1);
+		);
+	public static final Scene initialScene = new Scene(initialStack, 0, 1);
 	public static Colour levelColour(int level) {
 		return Colour.fromHSV((float)level * 6,0.4f,1.0f);
 	}
 	public Match(TimerSystem<Double> sys, Stream<Unit> sClick)
 	{
 		Cell<Boolean> direction = sClick.accum(false, (u, d) -> !d);
-		Array<Block> stack0 = Array.of(
-				new Block(new Point(-5, -5, 0),
-						  new Point(5, 5, 1),
-						  levelColour(0))
-			);
 	    CellLoop<Block> block = new CellLoop<>();
 		double t0 = sys.time.sample();
         Cell<Double> tLevel = sClick.snapshot(sys.time).hold(t0);
@@ -41,7 +37,7 @@ public class Match {
         			else
         				return Optional.empty();
         		});
-        stack.loop(Stream.filterOptional(sUpdate).hold(stack0));
+        stack.loop(Stream.filterOptional(sUpdate).hold(initialStack));
         block.loop(displacement.lift(stack, direction,
         		(disp, s, dir) -> {
         			int level = s.length();

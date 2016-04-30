@@ -25,8 +25,8 @@ public class Game {
     			                         .snapshot(sys.time).hold(t0);
     	Cell<Scene> finalScene = sGameOver.<Optional<Match>, Scene>snapshot(playing,
 				(u, om) -> om.isPresent() ? om.get().scene.sample()
-						                  : Match.emptyScene)
-    		.hold(Match.emptyScene);
+						                  : Match.initialScene)
+    		.hold(Match.initialScene);
     	scene = Cell.switchC(
 			sys.time.<Optional<Match>, Scene, Double, Cell<Scene>>lift(playing, finalScene, tTransition,
 				(t, om, fs, tT) -> {
