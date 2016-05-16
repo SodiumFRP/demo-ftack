@@ -8,15 +8,22 @@ import nz.sodium.time.*;
 
 
 public class Match {
-	public static final Array<Block> initialStack = Array.of(
-			new Block(new Point(-5, -5, 0),
-					  new Point(5, 5, 1),
-					  Match.levelColour(0))
-		);
-	public static final Scene initialScene = new Scene(initialStack, 0, 1);
+
+	public static final Block initialBlock =
+		new Block(new Point(-5, -5, 0),
+				  new Point(5, 5, 1),
+				  Match.levelColour(0));
+
+	public static final Array<Block> initialStack =
+		Array.of(initialBlock);
+
+	public static final Scene initialScene =
+        new Scene(initialStack, 0, 1);
+
 	public static Colour levelColour(int level) {
 		return Colour.fromHSV((float)level * 6,0.4f,1.0f);
 	}
+
 	public Match(TimerSystem<Double> sys, Stream<Unit> sClick)
 	{
 		Cell<Boolean> direction = sClick.accum(false, (u, d) -> !d);
