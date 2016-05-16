@@ -16,11 +16,11 @@ public class Game {
     	Stream<Match> sNewMatch = sStart.map(u -> new Match(sys, sClick));
     	playing.loop(sNewMatch.map(m -> Optional.of(m))
     			.orElse(sGameOver.map(m -> Optional.empty()))
-    			.hold(Optional.empty()));
+    			.hold(Optional.of(new Match(sys, sClick))));
     	sGameOver.loop(Cell.switchS(playing.map(om ->
     	    om.isPresent() ? om.get().sGameOver
     	    		       : new Stream<Unit>())));
-    	double t0 = sys.time.sample();
+    	double t0 = sys.time.sample() - 5;
     	Cell<Double> tTransition = sStart.orElse(sGameOver)
     			                         .snapshot(sys.time).hold(t0);
     	Cell<Scene> finalScene = sGameOver.<Optional<Match>, Scene>snapshot(playing,
