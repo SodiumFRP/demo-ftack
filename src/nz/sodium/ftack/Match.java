@@ -9,9 +9,14 @@ import nz.sodium.time.*;
 
 public class Match {
 
+	private static final float VERTICAL_BLOCK_HEIGHT = 1f;
+	private static final float VERTICAL_SCROLL_VELOCITY = 3f;
+	private static final int BENCHMARK_SIZE = 10;
+	private static final int HORIZONTAL_SLIDE_VELOCITY = 4;
+
 	public static final Block initialBlock =
-		new Block(new Point(-5, -5, 0),
-				  new Point(5, 5, 1),
+		new Block(new Point(-BENCHMARK_SIZE/2, -BENCHMARK_SIZE/2, 0),
+				  new Point(BENCHMARK_SIZE/2, BENCHMARK_SIZE/2, VERTICAL_BLOCK_HEIGHT),
 				  Match.levelColour(0));
 
 	public static final Array<Block> initialStack =
@@ -31,7 +36,7 @@ public class Match {
 		double t0 = sys.time.sample();
         Cell<Double> tLevel = sClick.snapshot(sys.time).hold(t0);
 		Cell<Float> displacement = sys.time.lift(tLevel,
-				(t, tLev) -> 10 - (float)(t - tLev) * 12);
+				(t, tLev) -> BENCHMARK_SIZE - (float)(t - tLev) * HORIZONTAL_SLIDE_VELOCITY);
 		CellLoop<Array<Block>> stack = new CellLoop<>();
         Stream<Optional<Array<Block>>> sUpdate =
         		sClick.snapshot(stack, block, displacement, direction,
@@ -49,15 +54,15 @@ public class Match {
         		(disp, s, dir) -> {
         			int level = s.length();
         			Block blk = s.get(level-1).setColour(levelColour(level));
-        			return dir ? blk.translate(0, disp, 1)
-        					   : blk.translate(disp, 0, 1);
+        			return dir ? blk.translate(0, disp, VERTICAL_BLOCK_HEIGHT)
+        					   : blk.translate(disp, 0, VERTICAL_BLOCK_HEIGHT);
         		}
         ));
         scene = stack.lift(block, sys.time, tLevel,
         		(blks, blk, t, tLev) -> {
-        			float tt = (float)(t - tLev) * 3;
-        			if (tt > 1) tt = 1;
-        		    return new Scene(blks.append(blk), (float)blks.length() + tt, 1);
+        			float tt = (float)(t - tLev) * VERTICAL_SCROLL_VELOCITY;
+        			if (tt > VERTICAL_BLOCK_HEIGHT) tt = VERTICAL_BLOCK_HEIGHT;
+        		    return new Scene(blks.append(blk), blks.length() * VERTICAL_BLOCK_HEIGHT + tt , 1);
         		});
         sGameOver = Stream.filterOptional(sUpdate.map(su ->
             su.isPresent() ? Optional.empty()
