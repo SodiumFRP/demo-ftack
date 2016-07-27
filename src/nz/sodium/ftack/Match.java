@@ -38,7 +38,7 @@ public class Match {
     					- (float)(t - t0)
     					* HORIZONTAL_SLIDE_VELOCITY;
     			Block blk = initialBlock
-    					.translate(disp, 0, VERTICAL_BLOCK_HEIGHT);
+    					.translate(disp, 0, 0);
         		return new Scene(Array.of(blk), 0, 1);
         	});
         sGameOver = sClick;
