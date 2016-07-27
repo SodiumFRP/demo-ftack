@@ -32,9 +32,10 @@ public class Match {
 	public Match(TimerSystem<Double> sys, Stream<Unit> sClick)
 	{
 		Cell<Double> time = sys.time;
-		double t0 = time.sample();
-		Cell<Array<Block>> stack = new Cell(initialStack);
-        scene = time.lift(stack, (t, blks) -> {
+		Cell<Double> tLevel = sClick
+				.snapshot(time).hold(time.sample());
+		CellLoop<Array<Block>> stack = new CellLoop();
+        scene = time.lift(stack, tLevel, (t, blks, t0) -> {
     			float disp = BENCHMARK_SIZE
     					- (float)(t - t0)
     					* HORIZONTAL_SLIDE_VELOCITY;
@@ -42,9 +43,13 @@ public class Match {
     			Block blk = blks.get(level-1)
     					.setColour(levelColour(level))
     					.translate(disp, 0, VERTICAL_BLOCK_HEIGHT);
-        		return new Scene(blks.append(blk), 0, 1);
+        		return new Scene(blks.append(blk), level, 1);
         	});
-        sGameOver = sClick;
+        stack.loop(
+        		sClick.snapshot(scene, (u, sc) -> sc.blocks)
+        		      .hold(initialStack)
+    		);
+        sGameOver = new Stream<Unit>();
 	}
 
 	public final Cell<Scene> scene;
