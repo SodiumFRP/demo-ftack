@@ -9,9 +9,14 @@ import nz.sodium.time.*;
 
 public class Match {
 
+	private static final float VERTICAL_BLOCK_HEIGHT = 1f;
+	private static final float VERTICAL_SCROLL_VELOCITY = 3f;
+	private static final int BENCHMARK_SIZE = 10;
+	private static final int HORIZONTAL_SLIDE_VELOCITY = 4;
+
 	public static final Block initialBlock =
-		new Block(new Point(-5, -5, 0),
-				  new Point(5, 5, 1),
+		new Block(new Point(-BENCHMARK_SIZE/2, -BENCHMARK_SIZE/2, 0),
+				  new Point(BENCHMARK_SIZE/2, BENCHMARK_SIZE/2, VERTICAL_BLOCK_HEIGHT),
 				  Match.levelColour(0));
 
 	public static final Array<Block> initialStack =
