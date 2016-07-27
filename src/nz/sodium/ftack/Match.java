@@ -33,15 +33,17 @@ public class Match {
 	{
 		Cell<Double> time = sys.time;
 		double t0 = time.sample();
-        scene = time.map(t ->
-	        		new Scene(
-        				Array.of(
-        						initialBlock.translate(
-        								(float)(t - t0), 0, 0)
-						),
-        				0, 1
-					)
-	    		);
+		Cell<Array<Block>> stack = new Cell(initialStack);
+        scene = time.lift(stack, (t, blks) -> {
+    			float disp = BENCHMARK_SIZE
+    					- (float)(t - t0)
+    					* HORIZONTAL_SLIDE_VELOCITY;
+    			int level = blks.length();
+    			Block blk = blks.get(level-1)
+    					.setColour(levelColour(level))
+    					.translate(disp, 0, VERTICAL_BLOCK_HEIGHT);
+        		return new Scene(blks.append(blk), 0, 1);
+        	});
         sGameOver = sClick;
 	}
 
